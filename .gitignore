@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local datasets
+data/raw/
+data/sample/coco-mini/images/
+data/sample/coco-mini/annotations/*.json
+*.zip
+*.tar
+*.tar.gz
+
+# Reports
+reports/*.html
+reports/*.json
+reports/*.csv
+reports/*.png
+
+# OS
+.DS_Store
