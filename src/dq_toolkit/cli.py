@@ -6,10 +6,16 @@ from dq_toolkit.checks.category import validate_categories
 from dq_toolkit.checks.reference import validate_references
 from dq_toolkit.checks.schema import validate_coco_schema
 from dq_toolkit.io.coco import load_coco_annotation, summarize_coco_dataset
+from dq_toolkit.analysis.bbox_distribution import (
+    analyze_bbox_distribution,
+    save_bbox_distribution_csv,
+    summarize_bbox_distribution,
+)
 from dq_toolkit.analysis.class_distribution import (
     analyze_class_distribution,
     save_class_distribution_csv,
 )
+
 
 
 def inspect_coco(args: argparse.Namespace) -> None:
@@ -96,6 +102,8 @@ def analyze_coco(args: argparse.Namespace) -> None:
     coco_dataset = load_coco_annotation(args.annotation)
 
     class_distribution = analyze_class_distribution(coco_dataset)
+    bbox_distribution = analyze_bbox_distribution(coco_dataset)
+    bbox_summary = summarize_bbox_distribution(bbox_distribution)
 
     print("COCO Class Distribution")
     print("=======================")
@@ -118,9 +126,51 @@ def analyze_coco(args: argparse.Namespace) -> None:
             f"{row.image_ratio:>10.2%}"
         )
 
+    print("\nCOCO BBox Distribution")
+    print("======================")
+    print(f"Total valid bboxes: {bbox_summary['total_bboxes']}")
+
+    size_counts = bbox_summary["size_counts"]
+    total_bboxes = bbox_summary["total_bboxes"]
+
+    for size_bin in ["small", "medium", "large"]:
+        count = size_counts.get(size_bin, 0)
+        ratio = count / total_bboxes if total_bboxes > 0 else 0.0
+        print(f"{size_bin:<6}: {count:>6} ({ratio:>6.2%})")
+
+    if total_bboxes > 0:
+        area = bbox_summary["area"]
+        aspect_ratio = bbox_summary["aspect_ratio"]
+
+        print("\nBBox area")
+        print(f"- min    : {area['min']:.2f}")
+        print(f"- max    : {area['max']:.2f}")
+        print(f"- mean   : {area['mean']:.2f}")
+        print(f"- median : {area['median']:.2f}")
+
+        print("\nAspect ratio")
+        print(f"- min    : {aspect_ratio['min']:.4f}")
+        print(f"- max    : {aspect_ratio['max']:.4f}")
+        print(f"- mean   : {aspect_ratio['mean']:.4f}")
+        print(f"- median : {aspect_ratio['median']:.4f}")
+
+        normalized_area = bbox_summary["normalized_area"]
+
+        if normalized_area:
+            print("\nNormalized area")
+            print(f"- min    : {normalized_area['min']:.8f}")
+            print(f"- max    : {normalized_area['max']:.8f}")
+            print(f"- mean   : {normalized_area['mean']:.8f}")
+            print(f"- median : {normalized_area['median']:.8f}")
+
+
     if args.output_csv is not None:
         save_class_distribution_csv(class_distribution, args.output_csv)
         print(f"\nSaved class distribution CSV: {args.output_csv}")
+
+    if args.bbox_output_csv is not None:
+        save_bbox_distribution_csv(bbox_distribution, args.bbox_output_csv)
+        print(f"Saved bbox distribution CSV: {args.bbox_output_csv}")
 
 
 def main() -> None:
@@ -181,6 +231,12 @@ def main() -> None:
         required=False,
         type=Path,
         help="Path to save class distribution CSV",
+    )
+    analyze_parser.add_argument(
+        "--bbox-output-csv",
+        required=False,
+        type=Path,
+        help="Path to save bbox distribution CSV",
     )
     analyze_parser.set_defaults(func=analyze_coco)
 
