@@ -15,6 +15,10 @@ from dq_toolkit.analysis.class_distribution import (
     analyze_class_distribution,
     save_class_distribution_csv,
 )
+from dq_toolkit.report.report_builder import (
+    build_quality_report,
+    save_quality_report_json,
+)
 
 
 
@@ -173,6 +177,35 @@ def analyze_coco(args: argparse.Namespace) -> None:
         print(f"Saved bbox distribution CSV: {args.bbox_output_csv}")
 
 
+def report_coco(args: argparse.Namespace) -> None:
+    report = build_quality_report(
+        annotation_path=args.annotation,
+        image_dir=args.image_dir,
+    )
+
+    save_quality_report_json(report, args.output)
+
+    print("COCO Quality Report")
+    print("===================")
+    print(f"Saved report: {args.output}")
+
+    validation = report["validation"]
+
+    print("\nValidation summary")
+    print(f"- Schema issues    : {validation['schema'].get('count', 'skipped')}")
+    print(f"- Reference issues : {validation['reference'].get('count', 'skipped')}")
+    print(f"- BBox issues      : {validation['bbox'].get('count', 'skipped')}")
+    print(f"- Category issues  : {validation['category'].get('count', 'skipped')}")
+
+    analysis = report["analysis"]
+
+    if isinstance(analysis, dict) and not analysis.get("skipped", False):
+        bbox_summary = analysis["bbox_distribution"]["summary"]
+        print("\nAnalysis summary")
+        print(f"- Class rows       : {len(analysis['class_distribution'])}")
+        print(f"- Valid bboxes     : {bbox_summary['total_bboxes']}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Dataset quality management toolkit"
@@ -239,6 +272,31 @@ def main() -> None:
         help="Path to save bbox distribution CSV",
     )
     analyze_parser.set_defaults(func=analyze_coco)
+
+    report_parser = subparsers.add_parser(
+        "report-coco",
+        help="Generate a JSON quality report for a COCO-format dataset",
+    )
+    report_parser.add_argument(
+        "--annotation",
+        required=True,
+        type=Path,
+        help="Path to COCO annotation JSON",
+    )
+    report_parser.add_argument(
+        "--image-dir",
+        required=False,
+        type=Path,
+        help="Path to image directory",
+    )
+    report_parser.add_argument(
+        "--output",
+        required=False,
+        type=Path,
+        default=Path("reports/quality_report.json"),
+        help="Path to save quality report JSON",
+    )
+    report_parser.set_defaults(func=report_coco)
 
     args = parser.parse_args()
     args.func(args)
