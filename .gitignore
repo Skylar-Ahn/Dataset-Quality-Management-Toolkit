@@ -11,6 +11,7 @@ __pycache__/
 data/raw/
 data/sample/coco-mini/images/
 data/sample/coco-mini/annotations/*.json
+data/sample/broken/
 *.zip
 *.tar
 *.tar.gz

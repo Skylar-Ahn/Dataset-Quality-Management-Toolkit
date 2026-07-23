@@ -3,6 +3,7 @@ from pathlib import Path
 
 from dq_toolkit.checks.bbox import validate_bboxes
 from dq_toolkit.checks.category import validate_categories
+from dq_toolkit.checks.schema import validate_coco_schema
 from dq_toolkit.io.coco import load_coco_annotation, summarize_coco_dataset
 
 
@@ -26,13 +27,29 @@ def inspect_coco(args: argparse.Namespace) -> None:
 
 
 def validate_coco(args: argparse.Namespace) -> None:
+    schema_issues = validate_coco_schema(args.annotation)
+
+    print("COCO Validation Result")
+    print("======================")
+    print(f"Schema issues   : {len(schema_issues)}")
+
+    if schema_issues:
+        print("\nSchema issue examples:")
+        for issue in schema_issues[:10]:
+            print(
+                f"- [{issue.severity}] {issue.check_name} | "
+                f"location={issue.location} | "
+                f"{issue.message}"
+            )
+
+        print("\nSchema validation failed. Skipping semantic checks.")
+        return
+
     coco_dataset = load_coco_annotation(args.annotation)
 
     bbox_issues = validate_bboxes(coco_dataset)
     category_issues = validate_categories(coco_dataset)
 
-    print("COCO Validation Result")
-    print("======================")
     print(f"BBox issues: {len(bbox_issues)}")
     print(f"Category issues : {len(category_issues)}")
 
