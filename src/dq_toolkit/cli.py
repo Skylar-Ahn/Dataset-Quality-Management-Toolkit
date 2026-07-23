@@ -69,6 +69,18 @@ def main() -> None:
     )
     inspect_parser.set_defaults(func=inspect_coco)
 
+    validate_parser = subparsers.add_parser(
+        "validate-coco",
+        help="Validate a COCO-format dataset",
+    )
+    validate_parser.add_argument(
+        "--annotation",
+        required=True,
+        type=Path,
+        help="Path to COCO annotation JSON",
+    )
+    validate_parser.set_defaults(func=validate_coco)
+
     args = parser.parse_args()
     args.func(args)
 
