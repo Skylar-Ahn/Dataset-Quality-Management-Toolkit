@@ -6,6 +6,10 @@ from dq_toolkit.checks.category import validate_categories
 from dq_toolkit.checks.reference import validate_references
 from dq_toolkit.checks.schema import validate_coco_schema
 from dq_toolkit.io.coco import load_coco_annotation, summarize_coco_dataset
+from dq_toolkit.analysis.class_distribution import (
+    analyze_class_distribution,
+    save_class_distribution_csv,
+)
 
 
 def inspect_coco(args: argparse.Namespace) -> None:
@@ -88,6 +92,37 @@ def validate_coco(args: argparse.Namespace) -> None:
             )
 
 
+def analyze_coco(args: argparse.Namespace) -> None:
+    coco_dataset = load_coco_annotation(args.annotation)
+
+    class_distribution = analyze_class_distribution(coco_dataset)
+
+    print("COCO Class Distribution")
+    print("=======================")
+    print(
+        f"{'category_id':>11}  "
+        f"{'category_name':<20}  "
+        f"{'instances':>10}  "
+        f"{'images':>8}  "
+        f"{'inst_ratio':>10}  "
+        f"{'img_ratio':>10}"
+    )
+
+    for row in class_distribution:
+        print(
+            f"{row.category_id:>11}  "
+            f"{row.category_name:<20}  "
+            f"{row.instance_count:>10}  "
+            f"{row.image_count:>8}  "
+            f"{row.instance_ratio:>10.2%}  "
+            f"{row.image_ratio:>10.2%}"
+        )
+
+    if args.output_csv is not None:
+        save_class_distribution_csv(class_distribution, args.output_csv)
+        print(f"\nSaved class distribution CSV: {args.output_csv}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Dataset quality management toolkit"
@@ -131,8 +166,27 @@ def main() -> None:
     )
     validate_parser.set_defaults(func=validate_coco)
 
+    analyze_parser = subparsers.add_parser(
+        "analyze-coco",
+        help="Analyze a COCO-format dataset",
+    )
+    analyze_parser.add_argument(
+        "--annotation",
+        required=True,
+        type=Path,
+        help="Path to COCO annotation JSON",
+    )
+    analyze_parser.add_argument(
+        "--output-csv",
+        required=False,
+        type=Path,
+        help="Path to save class distribution CSV",
+    )
+    analyze_parser.set_defaults(func=analyze_coco)
+
     args = parser.parse_args()
     args.func(args)
+
 
 
 if __name__ == "__main__":
