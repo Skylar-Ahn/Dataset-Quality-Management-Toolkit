@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 
+from dq_toolkit.checks.bbox import validate_bboxes
 from dq_toolkit.io.coco import load_coco_annotation, summarize_coco_dataset
 
 
@@ -21,6 +22,26 @@ def inspect_coco(args: argparse.Namespace) -> None:
             print("\nMissing image examples:")
             for file_name in summary["missing_images"][:10]:
                 print(f"- {file_name}")
+
+
+def validate_coco(args: argparse.Namespace) -> None:
+    coco_dataset = load_coco_annotation(args.annotation)
+
+    bbox_issues = validate_bboxes(coco_dataset)
+
+    print("COCO Validation Result")
+    print("======================")
+    print(f"BBox issues: {len(bbox_issues)}")
+
+    if bbox_issues:
+        print("\nBBox issue examples:")
+        for issue in bbox_issues[:10]:
+            print(
+                f"- [{issue.severity}] {issue.check_name} | "
+                f"image_id={issue.image_id}, annotation_id={issue.annotation_id} | "
+                f"{issue.message}"
+            )
+
 
 
 def main() -> None:
