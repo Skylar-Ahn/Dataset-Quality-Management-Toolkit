@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 
 from dq_toolkit.checks.bbox import validate_bboxes
+from dq_toolkit.checks.category import validate_categories
 from dq_toolkit.io.coco import load_coco_annotation, summarize_coco_dataset
 
 
@@ -28,10 +29,12 @@ def validate_coco(args: argparse.Namespace) -> None:
     coco_dataset = load_coco_annotation(args.annotation)
 
     bbox_issues = validate_bboxes(coco_dataset)
+    category_issues = validate_categories(coco_dataset)
 
     print("COCO Validation Result")
     print("======================")
     print(f"BBox issues: {len(bbox_issues)}")
+    print(f"Category issues : {len(category_issues)}")
 
     if bbox_issues:
         print("\nBBox issue examples:")
@@ -42,6 +45,16 @@ def validate_coco(args: argparse.Namespace) -> None:
                 f"{issue.message}"
             )
 
+    if category_issues:
+        print("\nCategory issue examples:")
+        for issue in category_issues[:10]:
+            print(
+                f"- [{issue.severity}] {issue.check_name} | "
+                f"image_id={issue.image_id}, "
+                f"annotation_id={issue.annotation_id}, "
+                f"category_id={issue.category_id} | "
+                f"{issue.message}"
+            )
 
 
 def main() -> None:
