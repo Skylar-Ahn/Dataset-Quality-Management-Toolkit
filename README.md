@@ -307,29 +307,6 @@ src/dq_toolkit/
 
 ---
 
-## Scope and limitations
-
-Current scope:
-
-- COCO-format object detection annotations
-- 2D bbox validation
-- category ID/name validation
-- class distribution analysis
-- bbox distribution analysis
-- issue catalog enrichment
-- rule-based review queue generation
-- controlled dirty dataset generation
-
-Current limitations:
-
-- Does not determine whether a bbox tightly fits the visible object.
-- Does not directly detect missing labels without model predictions or human review.
-- Does not yet detect train/validation/test leakage.
-- Does not calculate worker quality metrics without reviewer logs.
-- Does not measure model-performance impact.
-- Does not yet cover robotics multimodal consistency checks.
-
----
 
 ## Future work
 
@@ -347,12 +324,7 @@ Current limitations:
 - Model-performance-based error analysis
 - Streamlit dashboard
 - CVAT / Label Studio export integration
-- Robotics multimodal quality checks
-  - video-sensor timestamp mismatch
-  - joint signal range violation
-  - frame drop
-  - episode length anomaly
-  - task/subtask label consistency
+
 
 ---
 
