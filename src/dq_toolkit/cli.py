@@ -24,6 +24,8 @@ from dq_toolkit.review.review_queue import (
     load_quality_report,
     save_review_queue_csv,
 )
+from dq_toolkit.datasets.dirty_coco import generate_dirty_coco
+
 
 
 def inspect_coco(args: argparse.Namespace) -> None:
@@ -232,6 +234,31 @@ def review_queue(args: argparse.Namespace) -> None:
         for tier in ["P0", "P1", "P2", "P3"]:
             print(f"- {tier}: {tier_counts.get(tier, 0)}")
 
+def make_dirty_coco(args: argparse.Namespace) -> None:
+    records = generate_dirty_coco(
+        input_annotation_path=args.annotation,
+        output_annotation_path=args.output_annotation,
+        output_manifest_path=args.output_manifest,
+    )
+
+    print("Dirty COCO Generator")
+    print("====================")
+    print(f"Input annotation : {args.annotation}")
+    print(f"Output annotation: {args.output_annotation}")
+    print(f"Output manifest  : {args.output_manifest}")
+    print(f"Corruptions      : {len(records)}")
+
+    print("\nInjected corruptions")
+    for record in records:
+        print(
+            f"- {record.corruption_name} "
+            f"→ expected={record.expected_check_name}, "
+            f"target={record.target_type}, "
+            f"image_id={record.image_id}, "
+            f"annotation_id={record.annotation_id}, "
+            f"category_id={record.category_id}"
+        )
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -343,6 +370,35 @@ def main() -> None:
         help="Path to save review queue CSV",
     )
     review_queue_parser.set_defaults(func=review_queue)
+
+    dirty_parser = subparsers.add_parser(
+        "make-dirty-coco",
+        help="Generate a dirty COCO annotation JSON from a clean COCO annotation",
+    )
+    dirty_parser.add_argument(
+        "--annotation",
+        required=True,
+        type=Path,
+        help="Path to clean COCO annotation JSON",
+    )
+    dirty_parser.add_argument(
+        "--output-annotation",
+        required=False,
+        type=Path,
+        default=Path(
+            "data/sample/coco-mini-dirty/annotations/instances_coco_mini_dirty.json"
+        ),
+        help="Path to save dirty COCO annotation JSON",
+    )
+    dirty_parser.add_argument(
+        "--output-manifest",
+        required=False,
+        type=Path,
+        default=Path("data/sample/coco-mini-dirty/corruption_manifest.json"),
+        help="Path to save corruption manifest JSON",
+    )
+    dirty_parser.set_defaults(func=make_dirty_coco)
+
 
     args = parser.parse_args()
     args.func(args)

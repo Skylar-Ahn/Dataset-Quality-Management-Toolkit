@@ -12,6 +12,7 @@ data/raw/
 data/sample/coco-mini/images/
 data/sample/coco-mini/annotations/*.json
 data/sample/broken/
+data/sample/coco-mini-dirty/
 *.zip
 *.tar
 *.tar.gz
