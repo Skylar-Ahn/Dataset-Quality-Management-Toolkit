@@ -2,7 +2,7 @@
 
 COCO-format object detection 데이터셋을 대상으로 하는 경량 pre-flight 품질관리 도구입니다.
 
-이 프로젝트는 데이터셋의 구조적 무결성, image-annotation 참조 관계, bbox/category 유효성, 데이터 분포를 검사하고, 탐지된 이슈를 사람이 검수할 수 있는 Review Queue로 변환합니다. 단순 COCO validator가 아니라, 자동 검사 가능한 이슈와 사람/정책 검수가 필요한 이슈를 분리하는 Human-in-the-Loop 품질관리 workflow를 목표로 합니다.
+이 프로젝트는 데이터셋의 구조적 무결성, image-annotation 참조 관계, bbox/category 유효성, 데이터 분포를 검사하고, 탐지된 이슈를 사람이 검수할 수 있는 Review Queue로 변환합니다. 자동 검사 가능한 이슈와 사람/정책 검수가 필요한 이슈를 분리하는 Human-in-the-Loop 품질관리 workflow를 목표로 합니다.
 
 [English README](README.md)
 
@@ -259,13 +259,11 @@ Review Queue 예시:
 
 ## 설계 원칙
 
-### 모든 이슈를 자동 수정하지 않는다
+### 자동 검사와 사람 검수를 분리한다
 
 이 프로젝트는 탐지된 모든 품질 문제를 자동으로 수정하는 것을 목표로 하지 않습니다.
 
 bbox clipping, category remapping, annotation deletion 같은 작업은 데이터셋 목적과 라벨링 정책에 따라 달라질 수 있습니다. 따라서 자동 수정이 가능한 경우에도 dry-run 결과 또는 human approval을 전제로 합니다.
-
-### 자동 검사와 사람 검수를 분리한다
 
 | Judgement Level | Meaning |
 | --- | --- |
@@ -306,70 +304,3 @@ src/dq_toolkit/
 ```
 
 ---
-
-## Scope and limitations
-
-현재 MVP 범위:
-
-- COCO-format object detection annotation
-- 2D bbox validation
-- category id/name validation
-- class distribution analysis
-- bbox distribution analysis
-- issue catalog enrichment
-- rule-based review queue generation
-- controlled dirty dataset generation
-
-현재 한계:
-
-- bbox가 실제 object를 tight하게 감싸는지는 자동 판단하지 않습니다.
-- missing label 여부는 model prediction 또는 human review 없이 직접 판단하지 않습니다.
-- train/validation/test leakage detection은 아직 구현하지 않았습니다.
-- worker quality metrics는 실제 reviewer log 없이는 계산하지 않습니다.
-- 모델 성능에 미친 영향은 아직 측정하지 않았습니다.
-- robotics multimodal consistency check는 아직 다루지 않습니다.
-
----
-
-## Future work
-
-- Duplicate and near-duplicate image detection
-- Train/validation/test leakage detection
-- Image quality checks
-  - corrupted image
-  - low resolution
-  - blur
-  - blank image
-- Missing-label suspicion using model predictions
-- Label consistency checks for similar images or video frames
-- Review result logging
-- Worker/reviewer quality metrics
-- Model-performance-based error analysis
-- Streamlit dashboard
-- CVAT / Label Studio export integration
-- Robotics multimodal quality checks
-  - video-sensor timestamp mismatch
-  - joint signal range violation
-  - frame drop
-  - episode length anomaly
-  - task/subtask label consistency
-
----
-
-## Portfolio positioning
-
-이 프로젝트는 다음 역량을 보여줍니다.
-
-- AI training data lifecycle 이해
-- COCO-format object detection dataset inspection
-- annotation-level validation check 설계
-- dataset quality issue와 model training target의 연결 이해
-- automatic / human / policy / expert review case 구분
-- raw validation issue를 설명 가능한 review task로 변환
-- controlled dirty dataset을 활용한 validation test 설계
-- clean and dirty quality report 비교
-- Human-in-the-Loop dataset quality management workflow 설계
-
-핵심 메시지:
-
-> Training data quality management is not just about finding broken files. It is about identifying which data issues affect model learning, explaining why they matter, and routing them into the right review or improvement workflow.
