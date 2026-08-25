@@ -15,7 +15,7 @@ from dq_toolkit.checks.category import validate_categories
 from dq_toolkit.checks.reference import validate_references
 from dq_toolkit.checks.schema import validate_coco_schema
 from dq_toolkit.io.coco import load_coco_annotation, summarize_coco_dataset
-
+from dq_toolkit.review.issue_catalog import enrich_issue_dict
 
 def _to_dict(item: Any) -> dict:
     if is_dataclass(item):
@@ -39,14 +39,19 @@ def _count_by_check_name(issue_dicts: list[dict]) -> dict:
     return dict(Counter(issue["check_name"] for issue in issue_dicts))
 
 
-def _build_issue_section(issues: list[Any]) -> dict:
+def _build_issue_section(issues: list[Any], language: str = 'ko') -> dict:
     issue_dicts = _to_dict_list(issues)
 
+    enriched_issue_dicts = [
+        enrich_issue_dict(issue_dict, language=language)
+        for issue_dict in issue_dicts
+    ]
+
     return {
-        "count": len(issue_dicts),
-        "by_severity": _count_by_severity(issue_dicts),
-        "by_check_name": _count_by_check_name(issue_dicts),
-        "issues": issue_dicts,
+        "count": len(enriched_issue_dicts),
+        "by_severity": _count_by_severity(enriched_issue_dicts),
+        "by_check_name": _count_by_check_name(enriched_issue_dicts),
+        "issues": enriched_issue_dicts,
     }
 
 

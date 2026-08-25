@@ -289,6 +289,7 @@ def main() -> None:
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    # inspect parser
     inspect_parser = subparsers.add_parser(
         "inspect-coco",
         help="Inspect a COCO-format dataset",
@@ -307,6 +308,8 @@ def main() -> None:
     )
     inspect_parser.set_defaults(func=inspect_coco)
 
+
+    # validate parser
     validate_parser = subparsers.add_parser(
         "validate-coco",
         help="Validate a COCO-format dataset",
@@ -325,6 +328,8 @@ def main() -> None:
     )
     validate_parser.set_defaults(func=validate_coco)
 
+
+    # analyze parser
     analyze_parser = subparsers.add_parser(
         "analyze-coco",
         help="Analyze a COCO-format dataset",
@@ -349,9 +354,18 @@ def main() -> None:
     )
     analyze_parser.set_defaults(func=analyze_coco)
 
+
+    # report parser
     report_parser = subparsers.add_parser(
         "report-coco",
         help="Generate a JSON quality report for a COCO-format dataset",
+    )
+    report_parser.add_argument(
+        "--language",
+        required=False,
+        choices=["ko", "en"],
+        default="ko",
+        help="Catalog output language",
     )
     report_parser.add_argument(
         "--annotation",
@@ -374,6 +388,8 @@ def main() -> None:
     )
     report_parser.set_defaults(func=report_coco)
 
+
+    # review queue parser
     review_queue_parser = subparsers.add_parser(
         "review-queue",
         help="Generate a review queue CSV from a quality report JSON",
@@ -393,6 +409,8 @@ def main() -> None:
     )
     review_queue_parser.set_defaults(func=review_queue)
 
+
+    # dirty parser
     dirty_parser = subparsers.add_parser(
         "make-dirty-coco",
         help="Generate a dirty COCO annotation JSON from a clean COCO annotation",
@@ -421,6 +439,8 @@ def main() -> None:
     )
     dirty_parser.set_defaults(func=make_dirty_coco)
 
+
+    # compare parser
     compare_parser = subparsers.add_parser(
         "compare-reports",
         help="Compare clean and dirty COCO quality reports",
