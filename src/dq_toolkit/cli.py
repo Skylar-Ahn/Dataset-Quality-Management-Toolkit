@@ -19,7 +19,11 @@ from dq_toolkit.report.report_builder import (
     build_quality_report,
     save_quality_report_json,
 )
-
+from dq_toolkit.review.review_queue import (
+    build_review_queue,
+    load_quality_report,
+    save_review_queue_csv,
+)
 
 
 def inspect_coco(args: argparse.Namespace) -> None:
@@ -206,6 +210,29 @@ def report_coco(args: argparse.Namespace) -> None:
         print(f"- Valid bboxes     : {bbox_summary['total_bboxes']}")
 
 
+def review_queue(args: argparse.Namespace) -> None:
+    quality_report = load_quality_report(args.report)
+    rows = build_review_queue(quality_report)
+
+    save_review_queue_csv(rows, args.output)
+
+    print("Review Queue")
+    print("============")
+    print(f"Input report : {args.report}")
+    print(f"Saved CSV    : {args.output}")
+    print(f"Queue rows   : {len(rows)}")
+
+    tier_counts = {}
+
+    for row in rows:
+        tier_counts[row.priority_tier] = tier_counts.get(row.priority_tier, 0) + 1
+
+    if tier_counts:
+        print("\nPriority tier summary")
+        for tier in ["P0", "P1", "P2", "P3"]:
+            print(f"- {tier}: {tier_counts.get(tier, 0)}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Dataset quality management toolkit"
@@ -298,10 +325,28 @@ def main() -> None:
     )
     report_parser.set_defaults(func=report_coco)
 
+    review_queue_parser = subparsers.add_parser(
+        "review-queue",
+        help="Generate a review queue CSV from a quality report JSON",
+    )
+    review_queue_parser.add_argument(
+        "--report",
+        required=True,
+        type=Path,
+        help="Path to quality report JSON",
+    )
+    review_queue_parser.add_argument(
+        "--output",
+        required=False,
+        type=Path,
+        default=Path("reports/review_queue.csv"),
+        help="Path to save review queue CSV",
+    )
+    review_queue_parser.set_defaults(func=review_queue)
+
     args = parser.parse_args()
     args.func(args)
-
-
+    
 
 if __name__ == "__main__":
     main()
