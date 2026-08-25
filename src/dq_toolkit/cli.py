@@ -25,7 +25,7 @@ from dq_toolkit.review.review_queue import (
     save_review_queue_csv,
 )
 from dq_toolkit.datasets.dirty_coco import generate_dirty_coco
-
+from dq_toolkit.report.compare_reports import compare_quality_reports
 
 
 def inspect_coco(args: argparse.Namespace) -> None:
@@ -259,6 +259,28 @@ def make_dirty_coco(args: argparse.Namespace) -> None:
             f"category_id={record.category_id}"
         )
 
+def compare_reports(args: argparse.Namespace) -> None:
+    result = compare_quality_reports(
+        clean_report_path=args.clean_report,
+        dirty_report_path=args.dirty_report,
+        output_markdown_path=args.output_md,
+        output_csv_path=args.output_csv,
+    )
+
+    print("Clean vs Dirty Report")
+    print("=====================")
+    print(f"Clean report : {args.clean_report}")
+    print(f"Dirty report : {args.dirty_report}")
+    print(f"Saved MD     : {result['markdown_path']}")
+    print(f"Saved CSV    : {result['csv_path']}")
+
+    print("\nSummary rows")
+    for row in result["summary_rows"]:
+        print(
+            f"- {row['section']} | {row['metric']}: "
+            f"clean={row['clean']}, dirty={row['dirty']}, delta={row['delta']}"
+        )
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -398,6 +420,38 @@ def main() -> None:
         help="Path to save corruption manifest JSON",
     )
     dirty_parser.set_defaults(func=make_dirty_coco)
+
+    compare_parser = subparsers.add_parser(
+        "compare-reports",
+        help="Compare clean and dirty COCO quality reports",
+    )
+    compare_parser.add_argument(
+        "--clean-report",
+        required=True,
+        type=Path,
+        help="Path to clean quality report JSON",
+    )
+    compare_parser.add_argument(
+        "--dirty-report",
+        required=True,
+        type=Path,
+        help="Path to dirty quality report JSON",
+    )
+    compare_parser.add_argument(
+        "--output-md",
+        required=False,
+        type=Path,
+        default=Path("reports/clean_vs_dirty_report.md"),
+        help="Path to save comparison Markdown report",
+    )
+    compare_parser.add_argument(
+        "--output-csv",
+        required=False,
+        type=Path,
+        default=Path("reports/clean_vs_dirty_summary.csv"),
+        help="Path to save comparison CSV summary",
+    )
+    compare_parser.set_defaults(func=compare_reports)
 
 
     args = parser.parse_args()

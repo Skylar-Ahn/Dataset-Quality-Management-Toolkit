@@ -22,6 +22,7 @@ reports/*.html
 reports/*.json
 reports/*.csv
 reports/*.png
+reports/*.md
 
 # OS
 .DS_Store
